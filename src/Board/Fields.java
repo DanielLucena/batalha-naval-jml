@@ -25,11 +25,13 @@ public enum Fields {
         return false;
     }
 
+    //@ requires input.length() == 1;
     public static boolean containsColumn (String input) {
         int numberRows = values().length;
         try {
-            int column = Integer.parseInt(input) + 1;
-            return column > 0 && column <= numberRows;
+
+            int column = Integer.parseInt(input);
+            return column >= 0 && column <= numberRows + 1;
         } catch (Error e) {
             return false;
         }
