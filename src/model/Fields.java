@@ -1,4 +1,4 @@
-package Board;
+package model;
 
 public enum Fields {
     A(1),

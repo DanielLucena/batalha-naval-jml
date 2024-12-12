@@ -1,6 +1,6 @@
-package Root;
+package root;
 
-import Game.Game;
+import controller.Game;
 
 public class Main {
 

@@ -1,4 +1,4 @@
-package Board;
+package model;
 
 public abstract class Ship {
     public final int length;

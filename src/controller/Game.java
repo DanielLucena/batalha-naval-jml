@@ -1,11 +1,10 @@
-package Game;
+package controller;
 
-import Board.Ship;
-import Board.Submarine;
-import Player.Computer;
-import Player.Player;
+import model.Ship;
+import model.Submarine;
+import model.player.Computer;
+import model.player.Player;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -65,7 +64,7 @@ public class Game {
 
 
     // Uncomment the line below to make sure the human player will always win
-//    private void shootAtAllPositionsInOpponentBoard(Player winnerPlayer, Player loserPlayer) {
+//    private void shootAtAllPositionsInOpponentBoard(model.Player winnerPlayer, model.Player loserPlayer) {
 //        String[] rows = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 //        for (int i = 0; i < rows.length; i++) {
 //            for (int column = 0; column < 10; column++) {

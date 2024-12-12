@@ -1,9 +1,9 @@
-package Player;
+package model.player;
 
-import Board.Board;
-import Board.Fields;
-import Board.Ship;
-import Board.Submarine;
+import model.Board;
+import model.Fields;
+import model.Ship;
+import model.Submarine;
 
 import java.util.List;
 
