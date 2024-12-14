@@ -35,16 +35,11 @@ public class Board {
         System.out.println("---------------------------------------------");
     }
 
-    private void checkValidCoordinate (String coordinate) throws Exception {
-        if ((coordinate.length() != 2) || !Fields.containsRow(coordinate.substring(0, 1)) || !Fields.containsColumn(coordinate.substring(1))) {
-            throw new Exception("Incorrect Board Coordinate");
-        }
-    }
 
     public void placeShip (String shipSpot) throws Exception {
-        checkValidCoordinate(shipSpot);
-        int row = Fields.valueOf(shipSpot.substring(0, 1)).rowTitle;
-        int column = Integer.parseInt(shipSpot.substring(1)) + 1;
+        Coordinate coordinate = new Coordinate(shipSpot);
+        int row = coordinate.getRow();
+        int column = coordinate.getColumn();
         if (hasShipInSpot(row, column)) throw new Exception("Unavailable Board Coordinate");
         this.board[row][column] = 'N';
     }
@@ -57,9 +52,9 @@ public class Board {
 
         if (!playerName.toLowerCase().equals("computer")) clearScreen();
 
-        checkValidCoordinate(shotCoordinate);
-        int rowNumber = Fields.valueOf(shotCoordinate.substring(0, 1)).rowTitle;
-        int column = Integer.parseInt(shotCoordinate.substring(1)) + 1;
+        Coordinate coordinate = new Coordinate(shotCoordinate);
+        int rowNumber = coordinate.getRow();
+        int column = coordinate.getColumn();
         if (board[rowNumber][column] != ' ' &&
             board[rowNumber][column] != 'N') throw new Exception("Already shot at this spot");
         boolean shotHit = opponentBoard.getOpponentShot(rowNumber, column);
@@ -100,8 +95,13 @@ public class Board {
 
     public void fillBoard () {
         for (char[] row : board) Arrays.fill(row, ' ');
-        for (int i = 1; i <= Fields.values().length; i++) board[0][i] = Integer.toString(i - 1).charAt(0);
-        for (int i = 1; i <= Fields.values().length; i++) board[i][0] = Fields.values()[i - 1].toString().charAt(0);
+        for (int i = 1; i < board[0].length; i++) {
+            board[0][i] = Integer.toString(i - 1).charAt(0);
+
+        }
+        for (int i = 1; i < board.length; i++) {
+            board[i][0] = (char) (i-1 + 'A');
+        }
     }
 
     private void showBoardHeader () {
