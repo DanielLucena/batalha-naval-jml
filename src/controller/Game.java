@@ -2,138 +2,108 @@ package controller;
 
 import model.Ship;
 import model.Submarine;
-import model.player.Computer;
+import model.player.ComputerPlayer;
+import model.player.HumanPlayer;
 import model.player.Player;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Game {
 
-    Scanner sc = new Scanner(System.in);
+    private final Scanner sc = new Scanner(System.in);
 
     public Game() {
         String humanPlayerName = getPlayerName();
         List<Ship> fleet = getFleet();
-        Player humanPlayer = new Player(humanPlayerName, fleet);
-        Computer computerPlayer = new Computer(fleet);
+
+        // Criação dos jogadores com as novas implementações
+        Player humanPlayer = new HumanPlayer(humanPlayerName, fleet);
+        Player computerPlayer = new ComputerPlayer(fleet);
+
         playGame(humanPlayer, computerPlayer);
     }
 
     private String getPlayerName() {
-        String humanPlayerName;
         while (true) {
             System.out.print("Insert the Player's name: ");
-            humanPlayerName = sc.nextLine();
+            String humanPlayerName = sc.nextLine();
 
-            if (humanPlayerName.toLowerCase().equals("computer")) {
-                System.out.println(" this name already used your opponent");
+            if (humanPlayerName.equalsIgnoreCase("computer")) {
+                System.out.println("This name is already used by your opponent.");
                 continue;
             }
-            break;
+
+            return humanPlayerName.length() > 40 ? humanPlayerName.substring(0, 40) : humanPlayerName;
         }
-        return humanPlayerName.length() >= 40 ? humanPlayerName.substring(0, 41) : humanPlayerName;
     }
 
     private List<Ship> getFleet() {
-        Ship[] fleet = new Ship[10];
-        for (int i = 0; i < fleet.length; i++) {
-            fleet[i] = new Submarine();
+        List<Ship> fleet = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            fleet.add(new Submarine());
         }
-        return Arrays.asList(fleet);
+        return fleet;
     }
 
-    private Player getStartingPlayer(Player humanPlayer, Computer computerPlayer) {
+    private Player getStartingPlayer(Player player1, Player player2) {
         while (true) {
-            System.out.printf("Who starts the game, %s? (h = human or c = computer): ", humanPlayer.name);
+            System.out.printf("Who starts the game? (h = %s, c = %s): ", player1.getName(), player2.getName());
             String answer = sc.nextLine();
 
-            if (answer.length() == 0) continue;
+            if (answer.equalsIgnoreCase("h")) return player1;
+            if (answer.equalsIgnoreCase("c")) return player2;
 
-            if (answer.toLowerCase().charAt(0) == 'h') return humanPlayer;
-            if (answer.toLowerCase().charAt(0) == 'c') return computerPlayer;
-            System.out.println("Invalid answer");
+            System.out.println("Invalid answer. Please choose 'h' or 'c'.");
         }
     }
 
-    private Player getOtherPlayer(Player player, Player humanPlayer, Computer computerPlayer) {
-        if (player == humanPlayer) return computerPlayer;
-        return humanPlayer;
-    }
-
-
-    // Uncomment the line below to make sure the human player will always win
-//    private void shootAtAllPositionsInOpponentBoard(model.Player winnerPlayer, model.Player loserPlayer) {
-//        String[] rows = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
-//        for (int i = 0; i < rows.length; i++) {
-//            for (int column = 0; column < 10; column++) {
-//                try {
-//                    winnerPlayer.board.placeShot(rows[i] + column, loserPlayer.board);
-//                } catch (Exception ignore) {
-//                }
-//            }
-//        }
-//    }
-
-    private void playGame(Player humanPlayer, Computer computerPlayer) {
-        Player currentPlayer = getStartingPlayer(humanPlayer, computerPlayer);
-        Player opponentPlayer = getOtherPlayer(currentPlayer, humanPlayer, computerPlayer);
+    private void playGame(Player player1, Player player2) {
+        Player currentPlayer = getStartingPlayer(player1, player2);
+        Player opponentPlayer = (currentPlayer == player1) ? player2 : player1;
 
         while (true) {
-
             boolean gameOver = false;
+
             while (!gameOver) {
-                // Uncomment the line below to make sure the computer will always win as the humanPlayer will never play
-//                if (currentPlayer == humanPlayer) {
-//                    currentPlayer = computerPlayer;
-//                    opponentPlayer = humanPlayer;
-//                    continue;
-//                }
+                currentPlayer.shoot(opponentPlayer.getBoard());
+                gameOver = opponentPlayer.getBoard().hasWon();
 
-                // Uncomment the lines below to make sure the human player will always win
-//                if (currentPlayer == humanPlayer) {
-//                    shootAtAllPositionsInOpponentBoard(humanPlayer, computerPlayer);
-//                    gameOver = true;
-//                    opponentPlayer = humanPlayer;
-//                    continue;
-//                }
-
-                currentPlayer.shoot(opponentPlayer.board);
-                gameOver = currentPlayer.board.hasWon();
-                if (currentPlayer == humanPlayer) {
-                    currentPlayer.board.showBoard();
-                    computerPlayer.board.showScore("Player");
-                    humanPlayer.board.showScore(computerPlayer.name);
+                if (currentPlayer instanceof HumanPlayer) {
+                    currentPlayer.getBoard().showBoard();
+                    opponentPlayer.getBoard().showScore(currentPlayer.getName());
                 }
-                opponentPlayer = currentPlayer;
-                currentPlayer = getOtherPlayer(currentPlayer, humanPlayer, computerPlayer);
+
+                // Troca os jogadores
+                Player temp = currentPlayer;
+                currentPlayer = opponentPlayer;
+                opponentPlayer = temp;
             }
 
-            humanPlayer.board.clearScreen();
-            humanPlayer.board.showBoard();
+            System.out.printf("%s won the game!%n", opponentPlayer.getName());
 
-            System.out.printf("%s won the Game!%n", opponentPlayer.name);
+            if (getBooleanAnswer("Would you like to see the enemy board? (y/n): ")) {
+                opponentPlayer.getBoard().showBoard();
+            }
 
-            if (getBooleanAnswer("Would you like to see the enemy board, %s? (y or n): ", humanPlayer.name))
-                computerPlayer.board.showBoard();
+            if (!getBooleanAnswer("Do you want to play again? (y/n): ")) break;
 
-            if (!getBooleanAnswer("Do you want to play again, %s? (y or n): ", humanPlayer.name)) break;
-
-            humanPlayer.board.clearScreen();
-            humanPlayer.resetPlayer();
-            computerPlayer.resetPlayer();
+            // Reinicia o estado do jogo
+            player1.resetPlayer();
+            player2.resetPlayer();
         }
     }
 
-    private boolean getBooleanAnswer(String question, String playerName) {
+    private boolean getBooleanAnswer(String question) {
         while (true) {
-            System.out.printf(question, playerName);
+            System.out.print(question);
             String answer = sc.nextLine();
-            if (answer.toLowerCase().equals("y")) return true;
-            if (answer.toLowerCase().equals("n")) return false;
-            System.out.println("Answer y or n");
+
+            if (answer.equalsIgnoreCase("y")) return true;
+            if (answer.equalsIgnoreCase("n")) return false;
+
+            System.out.println("Invalid answer. Please choose 'y' or 'n'.");
         }
     }
-
 }
