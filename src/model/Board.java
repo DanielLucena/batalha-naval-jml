@@ -137,4 +137,16 @@ public class Board {
         return hitsOnEnemyShips;
     }
 
+    /* Retorna a pontuação do tabuleiro com base nos acertos. */
+    /*@ pure @*/
+    public int getScore() {
+        return checkShipsCount();
+    }
+
+    /*@ pure @*/
+    public char[][] getBoardGrid() {
+        return board.clone();
+    }
+
+
 }
