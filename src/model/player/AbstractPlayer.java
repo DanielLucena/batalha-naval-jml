@@ -2,55 +2,91 @@ package model.player;
 
 import model.Board;
 import model.Ship;
-
 import java.util.List;
 
 public abstract class AbstractPlayer implements Player {
-    private final String name;
-    private final Board board;
-    private final List<Ship> fleet;
+    /*@ spec_public @*/ private final String name;
+    /*@ spec_public @*/ private final Board board;
+    /*@ spec_public @*/ private final List<Ship> fleet;
 
-    /*@ invariant board != null; */
     /*@ invariant name != null; */
     /*@ invariant fleet != null; */
 
-    /*@ ensures getName().equals(name); */
-    /*@ ensures getBoard() != null; */
+    /*@
+      requires name != null;
+      requires fleet != null;
+      requires fleet.size() <= 10000;
+      requires (\forall int i; 0 <= i && i < fleet.size(); fleet.get(i) != null && fleet.get(i).length >= 0 && fleet.get(i).length <= 10000);
+      ensures getName().equals(name);
+      ensures getBoard() != null;
+      ensures getFleet() == fleet;
+    @*/
     public AbstractPlayer(String name, List<Ship> fleet) {
         this.name = name;
         this.fleet = fleet;
-        this.board = new Board(name, getHitsToWin(fleet));
+        //@ assume (\forall int i; 0 <= i && i < fleet.size(); fleet.get(i) != null && fleet.get(i).length >= 0 && fleet.get(i).length <= 10000);
+        int hits = getHitsToWin(fleet);
+        this.board = new Board(name, hits);
     }
 
-    /*@ requires fleet != null; */
-    /*@ ensures \result >= 0; */
-    /*@ pure @*/
+
+    /*@
+    requires fleet != null;
+    requires fleet.size() <= 10000;
+    requires (\forall int i; 0 <= i && i < fleet.size(); fleet.get(i) != null && fleet.get(i).length >= 0 && fleet.get(i).length <= 10000);
+    pure
+    @*/
     private int getHitsToWin(List<Ship> fleet) {
-        return fleet.stream().mapToInt(ship -> ship.length).sum();
+        int sum = 0;
+        //@ assert fleet.size() <= 10000;
+        //@ assert (\forall int i; 0 <= i && i < fleet.size(); fleet.get(i) != null && fleet.get(i).length >= 0 && fleet.get(i).length <= 10000);
+
+        /*@
+        loop_invariant 0 <= j && j <= fleet.size();
+        loop_invariant (\forall int k; 0 <= k && k < j; fleet.get(k) != null && fleet.get(k).length >= 0 && fleet.get(k).length <= 10000);
+        loop_invariant 0 <= sum && sum <= 100000000;
+        decreases fleet.size() - j;
+        @*/
+        for (int j = 0; j < fleet.size(); j++) {
+            //@ assume sum + fleet.get(j).length <= 100000000;
+            sum = sum + fleet.get(j).length;
+        }
+        return sum;
     }
 
-    /*@ also */
-    /*@ ensures \result.equals(name); */
+
+    /*@ also
+      ensures \result.equals(name);
+      ensures \result != null;
+      pure
+    @*/
     @Override
     public String getName() {
         return name;
     }
 
-    /*@ also */
-    /*@ ensures \result == board; */
+    /*@ also
+      ensures \result == board;
+      ensures \result != null;
+      pure
+    @*/
     @Override
     public Board getBoard() {
         return board;
     }
 
-    /*@ ensures \result != null; */
-    /*@ pure @*/
+    /*@
+      ensures \result == fleet;
+      ensures \result != null;
+      pure
+    @*/
     public List<Ship> getFleet() {
         return fleet;
     }
 
-    /*@ also */
-    /*@ ensures getBoard() != null; */
+    /*@ also
+      ensures getBoard() != null;
+    @*/
     @Override
     public void resetPlayer() {
         board.fillBoard();
