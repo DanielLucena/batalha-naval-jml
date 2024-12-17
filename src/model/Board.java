@@ -5,27 +5,52 @@ import java.io.IOException;
 
 public class Board {
 
-    private final char[][] board = new char[11][11];
+    //@ spec_public
+    private final char[] board = new char[100];
+
+    //@ spec_public
     private final int hitsToWin;
+
+    //@ spec_public
     private final String playerName;
 
+    //@ public invariant board.length == 100;
+    //@ public invariant 0 <= hitsToWin <= 10;
+
+    // openjml -cp ./src --method Board --esc src/model/Board.java
+    //@ ensures \forall int k; 0 <= k < board.length; board[k] == ' ';
     public Board (String playerName, int hitsToWin) {
         fillBoard();
         this.playerName = playerName;
         this.hitsToWin = hitsToWin;
     }
 
+    // openjml -cp ./src --method showBoard --esc src/model/Board.java
+    //@ assignable System.out.outputText, System.out.eol;
     public void showBoard() {
         showBoardHeader();
-        for (char[] column : board) {
-            System.out.print("| ");
-            for (char row : column) {
-                System.out.print(row + " | ");
-            }
-            System.out.println("\n---------------------------------------------");
+        System.out.print("  ");
+        //@ loop_invariant 0 <= i <= 10;
+        //@ decreases 10 - i;
+        //@ loop_writes System.out.outputText
+        for (int i = 0; i < 10 ; i++) {
+            System.out.print(i + " ");
         }
+
+        //@ loop_invariant 0 <= i <= board.length;
+        //@ decreases board.length - i;
+        //@ loop_writes System.out.outputText
+        for (int i=0; i < board.length; i++) {
+            if(i % 10 == 0){
+                System.out.print("\n" + (char) ((i/10) + 'A') + " ");
+            }
+            System.out.print(board[i] + " ");
+        }
+        System.out.println();
     }
 
+    // openjml -cp ./src --method showScore --esc src/model/Board.java
+    //@ assignable System.out.outputText, System.out.eol;
     public void showScore(String enemyName){
         String scoreText = "Remaining " + enemyName + " ships : " + (hitsToWin - checkShipsCount());
         String emptySpacesBefore = " ".repeat((43 - scoreText.length()) / 2);
@@ -35,75 +60,100 @@ public class Board {
         System.out.println("---------------------------------------------");
     }
 
-
+    // openjml -cp ./src --method placeShip --esc src/model/Board.java
     public void placeShip (String shipSpot) throws Exception {
         Coordinate coordinate = new Coordinate(shipSpot);
-        int row = coordinate.getRow();
-        int column = coordinate.getColumn();
-        if (hasShipInSpot(row, column)) throw new Exception("Unavailable Board Coordinate");
-        this.board[row][column] = 'N';
+        if (hasShipInSpot(coordinate)) throw new Exception("Unavailable Board Coordinate");
+        this.board[coordinate.getArrayPosition()] = 'N';
     }
 
-    private boolean hasShipInSpot (int row, int column) {
-        return board[row][column] == 'N' || board[row][column] == 'n';
+    // openjml -cp ./src --method hasShipInSpot --esc src/model/Board.java
+    //@ requires coordinate != null;
+    private boolean hasShipInSpot (Coordinate coordinate) {
+        return board[coordinate.getArrayPosition()] == 'N' || board[coordinate.getArrayPosition()] == 'n';
     }
 
-    public void placeShot (String shotCoordinate, Board opponentBoard) throws Exception {
+    // openjml -cp ./src --method placeShot --esc src/model/Board.java
+    //@ requires coordinate != null;
+    //@ assignable System.out.outputText, System.out.eol, board[*], opponentBoard.board[*];
+    //@ signals_only Exception;
+    public void placeShot (Coordinate coordinate, Board opponentBoard) throws Exception {
 
-        if (!playerName.toLowerCase().equals("computer")) clearScreen();
-
-        Coordinate coordinate = new Coordinate(shotCoordinate);
-        int rowNumber = coordinate.getRow();
-        int column = coordinate.getColumn();
-        if (board[rowNumber][column] != ' ' &&
-            board[rowNumber][column] != 'N') throw new Exception("Already shot at this spot");
-        boolean shotHit = opponentBoard.getOpponentShot(rowNumber, column);
+        if (board[coordinate.getArrayPosition()] != ' ' &&
+            board[coordinate.getArrayPosition()] != 'N') throw new Exception("Already shot at this spot");
+        boolean shotHit = opponentBoard.getOpponentShot(coordinate.getArrayPosition());
         if (shotHit) System.out.printf("%s hit an Enemy Ship%n", playerName);
-        if (board[rowNumber][column] == ' ') {
+        markOwnBoard(coordinate.getArrayPosition(), shotHit);
+    }
+
+
+    //@ requires 0 <= position <= 99 && board[position] == ' ' && shotHit;
+    //@ assigns board[position];
+    //@ ensures board[position] == '*';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] == ' ' && !shotHit;
+    //@ assigns System.out.outputText, System.out.eol, board[position];
+    //@ ensures board[position] == '-';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] != ' ' && shotHit;
+    //@ assigns board[position];
+    //@ ensures board[position] == 'X';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] != ' ' && !shotHit;
+    //@ assigns System.out.outputText, System.out.eol, board[position];
+    //@ ensures board[position] == 'n';
+    private void markOwnBoard (int position, boolean shotHit) {
+        if (board[position] == ' ') {
             if (shotHit) {
-                board[rowNumber][column] = '*';
+                board[position] = '*';
             }
             else {
-                board[rowNumber][column] = '-';
+                board[position] = '-';
                 System.out.printf("%s shot in the water%n", playerName);
             }
         }
         else {
-            if (shotHit) board[rowNumber][column] = 'X';
+            if (shotHit) board[position] = 'X';
             else {
-                board[rowNumber][column] = 'n';
+                board[position] = 'n';
                 System.out.printf("%s shot in the water%n", playerName);
             }
         }
     }
 
-    private boolean getOpponentShot (int rowNumber, int column) {
-        if (board[rowNumber][column] == 'N') {
-            board[rowNumber][column] = ' ';
-            return true;
+
+    // openjml -cp ./src --method getOpponentShot --esc src/model/Board.java
+    //@ requires 0 <= position <= 99 && (board[position] == 'N' || board[position] == 'X' || board[position] == 'n');
+    //@ assigns board[position];
+    //@ ensures \result == true;
+    //@ also
+    //@ requires 0 <= position <= 99 && !(board[position] == 'N' || board[position] == 'X' || board[position] == 'n');
+    //@ assigns \nothing;
+    //@ ensures \result == false;
+    private boolean getOpponentShot(int position) {
+        switch (board[position]) {
+            case 'N':
+                board[position] = ' ';
+                return true;
+            case 'X':
+                board[position] = '*';
+                return true;
+            case 'n':
+                board[position] = '-';
+                return true;
+            default:
+                return false;
         }
-        if (board[rowNumber][column] == 'X') {
-            board[rowNumber][column] = '*';
-            return true;
-        }
-        if (board[rowNumber][column] == 'n') {
-            board[rowNumber][column] = '-';
-            return true;
-        }
-        return false;
     }
 
-    public void fillBoard () {
-        for (char[] row : board) Arrays.fill(row, ' ');
-        for (int i = 1; i < board[0].length; i++) {
-            board[0][i] = Integer.toString(i - 1).charAt(0);
 
-        }
-        for (int i = 1; i < board.length; i++) {
-            board[i][0] = (char) (i-1 + 'A');
-        }
+    //@ assignable board[*];
+    public void fillBoard() {
+        Arrays.fill(board, ' ');
     }
 
+
+    //@ assignable System.out.outputText, System.out.eol;
     private void showBoardHeader () {
         String emptySpacesBefore = " ".repeat((43 - playerName.length()) / 2);
         String emptySpacesAfter = playerName.length() % 2 == 0 ? emptySpacesBefore + " " : emptySpacesBefore;
@@ -116,24 +166,18 @@ public class Board {
         return checkShipsCount() == hitsToWin;
     }
 
-    public void clearScreen () {
-        try {
-            if (System.getProperty("os.name").contains("Windows"))
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            else
-                Runtime.getRuntime().exec("clear");
-        } catch (IOException | InterruptedException ignored) {
-        }
-    }
-
-    private int checkShipsCount (){
+    //@ ensures 0 <= \result <= 100;
+    //@ pure
+    private int checkShipsCount() {
         int hitsOnEnemyShips = 0;
-        for (int i = 1; i < board.length; i++) {
-            for (int j = 1; j < board[i].length; j++) {
-                if (board[i][j] == '*' || board[i][j] == 'X') hitsOnEnemyShips++;
-            }
-        }
 
+        //@ loop_invariant 0 <= \count <= board.length;
+        //@ loop_invariant 0 <= hitsOnEnemyShips <= \count;
+        //@ loop_writes hitsOnEnemyShips;
+        //@ decreases board.length - \count;
+        for (char spot: board){
+            if (spot == '*' || spot == 'X') hitsOnEnemyShips++;
+        }
         return hitsOnEnemyShips;
     }
 
@@ -142,11 +186,10 @@ public class Board {
     public int getScore() {
         return checkShipsCount();
     }
-
-    /*@ pure @*/
-    public char[][] getBoardGrid() {
-        return board.clone();
-    }
+//    /* @ pure @ */
+//    public char[][] getBoardGrid() {
+//        return board.clone();
+//    }
 
 
 }

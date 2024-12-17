@@ -10,10 +10,10 @@ public class Coordinate {
 
     private /*@ spec_public @*/  int row;
 
+    //@ public invariant 0 <= column <= 9;
+    //@ public invariant 0 <= row <= 9;
 
-    //@ requires coordinateText.length() == 2;
-    //@ requires '0' <= coordinateText.charAt(1) <= '9';
-    //@ requires ((coordinateText.charAt(0) >= 'a' && coordinateText.charAt(0) <= 'j') || (coordinateText.charAt(0) >= 'A' && coordinateText.charAt(0) <= 'J'));
+
     //@ ensures this.coordinateText.length() == 2;
     //@ signals_only Exception;
     public Coordinate(String coordinateText) throws Exception {
@@ -21,22 +21,28 @@ public class Coordinate {
             this.coordinateText = coordinateText.substring(0,2);
             this.column = columnCharToInt(coordinateText.charAt(1));
             this.row = rowCharToInt(coordinateText.charAt(0));
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             throw new Exception("Incorrect Board Coordinate");
         }
+    }
 
-
+    //@ requires 0 <= row <= 9;
+    //@ requires 0 <= column <= 9;
+    public Coordinate(int row, int column) {
+        this.row = row;
+        this.column = column;
+        this.coordinateText = ((char) (row +'A')) + ("" + column);
     }
 
     //@ requires true;
-    //@ ensures 1 <= \result <= 10;
+    //@ ensures 0 <= \result <= 9;
     //@ signals (RuntimeException e) !((rowChar >= 'a' && rowChar <= 'j') || (rowChar >= 'A' && rowChar <= 'J'));
     private int rowCharToInt(char rowChar) {
         if(rowChar >= 'a' && rowChar <= 'j'){
-            return rowChar - 'a' + 1;
+            return rowChar - 'a';
         }
         else if(rowChar >= 'A' && rowChar <= 'J'){
-            return rowChar - 'A' + 1;
+            return rowChar - 'A';
         }
         else {
             throw new RuntimeException();
@@ -44,23 +50,32 @@ public class Coordinate {
     }
 
     //@ requires true;
-    //@ ensures 1 <= \result <= 10;
+    //@ ensures 0 <= \result <= 9;
     //@ signals (RuntimeException e)  colChar < '0' || colChar > '9';
     private int columnCharToInt(char colChar) {
         if(colChar >= '0' && colChar <= '9'){
-            return colChar - '0' + 1;
+            return colChar - '0';
         }
         else {
             throw new RuntimeException();
         }
     }
 
+    //@ ensures 0 <= \result <= 99;
+    //@ pure
+    public int getArrayPosition(){
+        return (row * 10) + column;
+    }
 
 
+    //@ ensures 0 <= \result <= 9;
+    //@ pure
     public int getColumn() {
         return column;
     }
 
+    //@ ensures 0 <= \result <= 9;
+    //@ pure
     public int getRow() {
         return row;
     }
