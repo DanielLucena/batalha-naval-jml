@@ -74,54 +74,76 @@ public class Board {
     }
 
     // openjml -cp ./src --method placeShot --esc src/model/Board.java
-    //@ assigns System.out.outputText, System.out.eol, board[*];
+    //@ requires coordinate != null;
+    //@ assignable System.out.outputText, System.out.eol, board[*], opponentBoard.board[*];
     //@ signals_only Exception;
-    public void placeShot (String shotCoordinate, Board opponentBoard) throws Exception {
+    public void placeShot (Coordinate coordinate, Board opponentBoard) throws Exception {
 
-        Coordinate coordinate = new Coordinate(shotCoordinate);
-        int rowNumber = coordinate.getRow();
-        int column = coordinate.getColumn();
         if (board[coordinate.getArrayPosition()] != ' ' &&
             board[coordinate.getArrayPosition()] != 'N') throw new Exception("Already shot at this spot");
-        boolean shotHit = opponentBoard.getOpponentShot(rowNumber, column);
+        boolean shotHit = opponentBoard.getOpponentShot(coordinate.getArrayPosition());
         if (shotHit) System.out.printf("%s hit an Enemy Ship%n", playerName);
-        if (board[coordinate.getArrayPosition()] == ' ') {
+        markOwnBoard(coordinate.getArrayPosition(), shotHit);
+    }
+
+
+    //@ requires 0 <= position <= 99 && board[position] == ' ' && shotHit;
+    //@ assigns board[position];
+    //@ ensures board[position] == '*';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] == ' ' && !shotHit;
+    //@ assigns System.out.outputText, System.out.eol, board[position];
+    //@ ensures board[position] == '-';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] != ' ' && shotHit;
+    //@ assigns board[position];
+    //@ ensures board[position] == 'X';
+    //@ also
+    //@ requires 0 <= position <= 99 && board[position] != ' ' && !shotHit;
+    //@ assigns System.out.outputText, System.out.eol, board[position];
+    //@ ensures board[position] == 'n';
+    private void markOwnBoard (int position, boolean shotHit) {
+        if (board[position] == ' ') {
             if (shotHit) {
-                board[coordinate.getArrayPosition()] = '*';
+                board[position] = '*';
             }
             else {
-                board[coordinate.getArrayPosition()] = '-';
+                board[position] = '-';
                 System.out.printf("%s shot in the water%n", playerName);
             }
         }
         else {
-            if (shotHit) board[coordinate.getArrayPosition()] = 'X';
+            if (shotHit) board[position] = 'X';
             else {
-                board[coordinate.getArrayPosition()] = 'n';
+                board[position] = 'n';
                 System.out.printf("%s shot in the water%n", playerName);
             }
         }
     }
 
+
     // openjml -cp ./src --method getOpponentShot --esc src/model/Board.java
-    //@ requires 0 <= rowNumber <= 9;
-    //@ requires 0 <= column <= 9;
-    //@ assigns board[*];
-    private boolean getOpponentShot (int rowNumber, int column) {
-        Coordinate coordinate = new Coordinate(rowNumber, column);
-        if (board[coordinate.getArrayPosition()] == 'N') {
-            board[coordinate.getArrayPosition()] = ' ';
-            return true;
+    //@ requires 0 <= position <= 99 && (board[position] == 'N' || board[position] == 'X' || board[position] == 'n');
+    //@ assigns board[position];
+    //@ ensures \result == true;
+    //@ also
+    //@ requires 0 <= position <= 99 && !(board[position] == 'N' || board[position] == 'X' || board[position] == 'n');
+    //@ assigns \nothing;
+    //@ ensures \result == false;
+    private boolean getOpponentShot(int position) {
+        switch (board[position]) {
+            case 'N':
+                board[position] = ' ';
+                return true;
+            case 'X':
+                board[position] = '*';
+                return true;
+            case 'n':
+                board[position] = '-';
+                return true;
+            default:
+                return false;
         }
-        if (board[coordinate.getArrayPosition()] == 'X') {
-            board[coordinate.getArrayPosition()] = '*';
-            return true;
-        }
-        if (board[coordinate.getArrayPosition()] == 'n') {
-            board[coordinate.getArrayPosition()] = '-';
-            return true;
-        }
-        return false;
     }
 
 

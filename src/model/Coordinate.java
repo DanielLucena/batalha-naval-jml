@@ -31,7 +31,7 @@ public class Coordinate {
     public Coordinate(int row, int column) {
         this.row = row;
         this.column = column;
-        this.coordinateText = ('A' + row) + ("" + column);
+        this.coordinateText = ((char) (row +'A')) + ("" + column);
     }
 
     //@ requires true;
@@ -62,17 +62,20 @@ public class Coordinate {
     }
 
     //@ ensures 0 <= \result <= 99;
+    //@ pure
     public int getArrayPosition(){
         return (row * 10) + column;
     }
 
 
     //@ ensures 0 <= \result <= 9;
+    //@ pure
     public int getColumn() {
         return column;
     }
 
     //@ ensures 0 <= \result <= 9;
+    //@ pure
     public int getRow() {
         return row;
     }
