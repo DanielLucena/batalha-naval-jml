@@ -12,26 +12,29 @@ public class Coordinate {
 
     //@ public invariant 0 <= column <= 9;
     //@ public invariant 0 <= row <= 9;
+    //@ public invariant coordinateText.length() == 2;
 
 
     //@ ensures this.coordinateText.length() == 2;
-    //@ signals_only Exception;
+    //@ signals (RuntimeException e)  coordinateText.length() < 2;
     public Coordinate(String coordinateText) throws Exception {
-        try{
-            this.coordinateText = coordinateText.substring(0,2);
-            this.column = columnCharToInt(coordinateText.charAt(1));
-            this.row = rowCharToInt(coordinateText.charAt(0));
-        } catch (RuntimeException e) {
-            throw new Exception("Incorrect Board Coordinate");
-        }
+        if(coordinateText.length() < 2) throw new Exception("Incorrect Board Coordinate");
+            try{
+                this.coordinateText = coordinateText.substring(0,2);
+                this.column = columnCharToInt(coordinateText.charAt(1));
+                this.row = rowCharToInt(coordinateText.charAt(0));
+            } catch (RuntimeException e) {
+                throw new Exception("Incorrect Board Coordinate");
+            }
     }
 
-    //@ requires 0 <= row <= 9;
-    //@ requires 0 <= column <= 9;
+    /*@
+      requires 0 <= row <= 9 && 0 <= column <= 9;
+    @*/
     public Coordinate(int row, int column) {
         this.row = row;
         this.column = column;
-        this.coordinateText = ((char) (row +'A')) + ("" + column);
+        this.coordinateText = "A0";
     }
 
     //@ requires true;
@@ -80,6 +83,10 @@ public class Coordinate {
         return row;
     }
 
+    /*@
+        ensures \result.length() == 2;
+        pure
+    @*/
     public String getCoordinateText() {
         return coordinateText;
     }

@@ -61,15 +61,21 @@ public class Board {
     }
 
     // openjml -cp ./src --method placeShip --esc src/model/Board.java
-    public void placeShip (String shipSpot) throws Exception {
-        Coordinate coordinate = new Coordinate(shipSpot);
+    //@ requires hasShipInSpot(coordinate);
+    //@ signals_only Exception;
+    //@ also
+    //@ requires !hasShipInSpot(coordinate);
+    //@ assigns this.board[*];
+    public void placeShip (Coordinate coordinate) throws Exception {
+        //Coordinate coordinate = new Coordinate(shipSpot);
         if (hasShipInSpot(coordinate)) throw new Exception("Unavailable Board Coordinate");
         this.board[coordinate.getArrayPosition()] = 'N';
     }
 
     // openjml -cp ./src --method hasShipInSpot --esc src/model/Board.java
     //@ requires coordinate != null;
-    private boolean hasShipInSpot (Coordinate coordinate) {
+    //@ pure
+    private /*@ spec_public @*/ boolean hasShipInSpot (Coordinate coordinate) {
         return board[coordinate.getArrayPosition()] == 'N' || board[coordinate.getArrayPosition()] == 'n';
     }
 
@@ -186,10 +192,15 @@ public class Board {
     public int getScore() {
         return checkShipsCount();
     }
-//    /* @ pure @ */
-//    public char[][] getBoardGrid() {
-//        return board.clone();
-//    }
+
+    /*@
+        ensures \result != null;
+        pure
+    @*/
+    public char[] getBoardArray() {
+        return board;
+    }
+
 
 
 }

@@ -5,12 +5,12 @@ import model.Ship;
 import java.util.List;
 
 public abstract class AbstractPlayer implements Player {
-    /*@ spec_public @*/ private final String name;
+    /*@ spec_public @*/ protected final String name;
     /*@ spec_public @*/ private final Board board;
     /*@ spec_public @*/ private final List<Ship> fleet;
 
-    /*@ invariant name != null; */
-    /*@ invariant fleet != null; */
+    /*@ public invariant name != null; */
+    /*@ public invariant fleet != null; */
 
     /*@
       requires name != null;
@@ -56,7 +56,6 @@ public abstract class AbstractPlayer implements Player {
 
 
     /*@ also
-      ensures \result.equals(name);
       ensures \result != null;
       pure
     @*/

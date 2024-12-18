@@ -1,6 +1,7 @@
 package model.player;
 
 import model.Board;
+import model.Coordinate;
 import model.Fields;
 import model.Ship;
 import java.util.List;
@@ -38,8 +39,9 @@ public class ComputerPlayer extends AbstractPlayer {
     /*@ ensures getBoard() != null; */
     private void placeSubmarineAutomatically() {
         while (true) {
-            String shipSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
+            //String shipSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
             try {
+            Coordinate shipSpot = new Coordinate(random.nextInt(10), random.nextInt(10));
                 getBoard().placeShip(shipSpot);
                 break;
             } catch (Exception ignored) {}
@@ -53,8 +55,9 @@ public class ComputerPlayer extends AbstractPlayer {
     @Override
     public void shoot(Board opponentBoard) {
         while (true) {
-            String shotSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
+            //String shotSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
             try {
+                Coordinate shotSpot = new Coordinate(random.nextInt(10), random.nextInt(10));
                 getBoard().placeShot(shotSpot, opponentBoard);
                 break;
             } catch (Exception ignored) {}

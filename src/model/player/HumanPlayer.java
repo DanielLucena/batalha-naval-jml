@@ -1,17 +1,17 @@
 package model.player;
 
-import model.Board;
-import model.Fields;
-import model.Ship;
-import model.Submarine;
+import model.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class HumanPlayer extends AbstractPlayer {
     private final Scanner sc = new Scanner(System.in);
-
+    
     /* Construtor que inicializa o jogador humano. */
     /*@
       requires name != null;
@@ -30,13 +30,13 @@ public class HumanPlayer extends AbstractPlayer {
     /* Posiciona a frota do jogador humano no tabuleiro. */
     /*@ also
       ensures getBoard() != null;
-      assignable System.out.outputText, System.out.eol;
+      assignable System.out.outputText, System.out.eol, \everything;
     @*/
     @Override
     public void positionFleet() {
         System.out.printf("Do you want to position your fleet randomly, %s? (y or n): ", getName());
         String answer = sc.nextLine();
-        boolean randomPositioning = answer.equalsIgnoreCase("y");
+        boolean randomPositioning = answer.charAt(0) == 'y' || answer.charAt(0) == 'Y';
 
         for (Ship ship : getFleet()) {
             if (ship instanceof Submarine) {
@@ -53,13 +53,14 @@ public class HumanPlayer extends AbstractPlayer {
     /* Posiciona submarinos automaticamente no tabuleiro. */
     /*@
       ensures getBoard() != null;
-      assignable System.out.outputText, System.out.eol;
+    //   assignable this.board.board[*];
     @*/
     private void placeSubmarineAutomatically() {
         Random random = new Random();
         while (true) {
-            String shipSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
+            //String shipSpot = Fields.getRowLetter(random.nextInt(10) + 1) + (random.nextInt(10) + 1);
             try {
+                Coordinate shipSpot = new Coordinate(random.nextInt(10), random.nextInt(10));
                 getBoard().placeShip(shipSpot);
                 break;
             } catch (Exception ignored) {}
@@ -68,18 +69,19 @@ public class HumanPlayer extends AbstractPlayer {
 
     /* Posiciona submarinos manualmente no tabuleiro. */
     /*@
-      ensures getBoard() != null;
-      assignable System.out.outputText, System.out.eol;
+        ensures getBoard() != null;
+        assignable System.out.outputText, System.out.eol, \everything;
     @*/
     private void placeSubmarineManually() {
         while (true) {
             System.out.print("Choose a spot to place a submarine (eg. B2): ");
             String shipSpot = sc.nextLine();
             try {
-                getBoard().placeShip(shipSpot.toUpperCase());
+                Coordinate coordinate = new Coordinate(shipSpot);
+                getBoard().placeShip(coordinate);
                 break;
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+//                System.out.println("Error: " + e.getMessage());
             }
         }
     }
@@ -87,8 +89,8 @@ public class HumanPlayer extends AbstractPlayer {
     /* Realiza um disparo no tabuleiro do oponente. */
     /*@ also
       requires opponentBoard != null;
-      ensures (\old(opponentBoard.getScore()) < opponentBoard.getScore());
-      assignable System.out.outputText, System.out.eol;
+    //   ensures (\old(opponentBoard.getScore()) < opponentBoard.getScore());
+      assignable \everything, this.board.board[*], opponentBoard.board[*];
     @*/
     @Override
     public void shoot(Board opponentBoard) {
@@ -96,10 +98,11 @@ public class HumanPlayer extends AbstractPlayer {
             System.out.print("Choose a spot to shoot (eg. B2): ");
             String shotSpot = sc.nextLine();
             try {
-                getBoard().placeShot(shotSpot.toUpperCase(), opponentBoard);
+                Coordinate coordinate = new Coordinate(shotSpot);
+                getBoard().placeShot(coordinate, opponentBoard);
                 break;
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                //System.out.println(e.getMessage());
             }
         }
     }
