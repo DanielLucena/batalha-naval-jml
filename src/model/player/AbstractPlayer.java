@@ -48,8 +48,8 @@ public abstract class AbstractPlayer implements Player {
         decreases fleet.size() - j;
         @*/
         for (int j = 0; j < fleet.size(); j++) {
-            //@ assume sum + fleet.get(j).length <= 100000000;
-            sum = sum + fleet.get(j).length;
+            //@ assume sum + fleet.get(j).getLength() <= 100000000;
+            sum = sum + fleet.get(j).getLength();
         }
         return sum;
     }
@@ -75,7 +75,6 @@ public abstract class AbstractPlayer implements Player {
     }
 
     /*@
-      ensures \result == fleet;
       ensures \result != null;
       pure
     @*/

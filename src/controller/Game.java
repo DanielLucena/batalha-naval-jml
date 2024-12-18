@@ -25,6 +25,8 @@ public class Game {
         playGame(humanPlayer, computerPlayer);
     }
 
+    //@ ensures \result.length() <= 40 && \result != null;
+    //@ assignable System.out.outputText, System.out.eol;
     private String getPlayerName() {
         while (true) {
             System.out.print("Insert the Player's name: ");
@@ -39,14 +41,33 @@ public class Game {
         }
     }
 
-    private List<Ship> getFleet() {
-        List<Ship> fleet = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            fleet.add(new Submarine());
-        }
-        return fleet;
-    }
+    /*@
+        ensures \result != null;
+        ensures \result.size() == 10;
+        ensures (\forall int i; 0 <= i && i < \result.size(); \result.get(i) instanceof Submarine);
+        ensures (\forall int i; 0 <= i && i < \result.size(); \result.get(i).getLength() >= 0 && \result.get(i).getLength() <= 10000);
+    @*/
+private List<Ship> getFleet() {
+    List<Ship> fleet = new ArrayList<>();
 
+    /*@
+        loop_invariant 0 <= i && i <= 10;
+        loop_invariant (\forall int j; 0 <= j && j < i; fleet.get(j) instanceof Submarine);
+        loop_invariant (\forall int j; 0 <= j && j < i; fleet.get(j).getLength() >= 0 && fleet.get(j).getLength() <= 10000);
+        loop_writes fleet;
+        decreasing 10 - i;
+    @*/
+    for (int i = 0; i < 10; i++) {
+        fleet.add(new Submarine()); // Garantindo que cada Submarine tem length válido
+    }
+    // @ assert fleet.size() == 10;
+    return fleet;
+}
+
+
+    //@ requires player1 != null && player2 != null;
+    //@ assignable System.out.outputText, System.out.eol;
+    //@ ensures \result != null;
     private Player getStartingPlayer(Player player1, Player player2) {
         while (true) {
             System.out.printf("Who starts the game? (h = %s, c = %s): ", player1.getName(), player2.getName());
@@ -59,10 +80,13 @@ public class Game {
         }
     }
 
+    //@ requires player1 !=null && player2 != null;
+    //@ assignable System.out.outputText, System.out.eol;
     private void playGame(Player player1, Player player2) {
         Player currentPlayer = getStartingPlayer(player1, player2);
         Player opponentPlayer = (currentPlayer == player1) ? player2 : player1;
 
+        //@ loop_writes System.out.outputText, System.out.eol;
         while (true) {
             boolean gameOver = false;
 
@@ -95,6 +119,7 @@ public class Game {
         }
     }
 
+    //@ requires question != null;
     private boolean getBooleanAnswer(String question) {
         while (true) {
             System.out.print(question);
