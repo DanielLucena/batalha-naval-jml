@@ -19,7 +19,6 @@ public interface Player {
 
     /* Realiza um disparo no tabuleiro do oponente. */
     /*@ requires opponentBoard != null; */
-    // /*@ ensures (\old(opponentBoard.getScore()) < opponentBoard.getScore()); */
     void shoot(Board opponentBoard);
 
     /* Restaura o estado inicial do jogador. */

@@ -14,7 +14,6 @@ public class Coordinate {
     //@ public invariant 0 <= row <= 9;
     //@ public invariant coordinateText.length() == 2;
 
-
     //@ ensures this.coordinateText.length() == 2;
     //@ signals (RuntimeException e)  coordinateText.length() < 2;
     public Coordinate(String coordinateText) throws Exception {
